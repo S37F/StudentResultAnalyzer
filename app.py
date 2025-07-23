@@ -8,7 +8,7 @@ import base64
 
 # Import custom modules
 from auth import authenticate_user, create_user, check_user_exists
-from db import DatabaseManager
+from database import UnifiedDatabaseManager
 from utils import parse_csv_file, parse_pdf_file, validate_file_format
 from analytics import PerformanceAnalytics
 from visualizations import create_charts
@@ -20,7 +20,7 @@ if 'authenticated' not in st.session_state:
 if 'username' not in st.session_state:
     st.session_state.username = None
 if 'db_manager' not in st.session_state:
-    st.session_state.db_manager = DatabaseManager()
+    st.session_state.db_manager = UnifiedDatabaseManager()
 
 def main():
     st.set_page_config(
@@ -93,13 +93,14 @@ def show_main_app():
         st.rerun()
     
     # Main navigation tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "📁 Upload Data", 
         "📊 Dashboard", 
         "📈 Analytics", 
         "🤖 ML Insights", 
         "📄 Reports", 
-        "📚 History"
+        "📚 History",
+        "🗄️ Database"
     ])
     
     with tab1:
@@ -119,6 +120,9 @@ def show_main_app():
     
     with tab6:
         show_history_tab()
+    
+    with tab7:
+        show_database_tab()
 
 def show_upload_tab():
     """Handle file upload and data parsing"""
@@ -455,6 +459,186 @@ def show_history_tab():
         if all_records:
             st.metric("Total Subjects", len(set([r['Subject'] for r in all_records])))
             st.metric("Semesters Completed", len(set([r['Semester'] for r in all_records])))
+
+def show_database_tab():
+    """Display database information and configuration"""
+    st.header("🗄️ Database Configuration")
+    
+    # Get database information
+    db_info = st.session_state.db_manager.get_database_info()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.subheader("Current Database Status")
+        
+        # Current database type
+        db_type = db_info['type']
+        st.metric("Active Database", db_type.upper())
+        
+        # Database type descriptions
+        db_descriptions = {
+            'postgres': {
+                'name': 'PostgreSQL',
+                'description': 'Production-ready relational database with full SQL support',
+                'features': ['ACID compliance', 'Concurrent access', 'Advanced querying', 'Data integrity'],
+                'status': '🟢 Connected' if db_type == 'postgres' else '🔴 Not configured'
+            },
+            'mongodb': {
+                'name': 'MongoDB', 
+                'description': 'NoSQL document database for flexible data storage',
+                'features': ['Document storage', 'Flexible schema', 'Horizontal scaling', 'JSON-like documents'],
+                'status': '🟢 Connected' if db_type == 'mongodb' else '🔴 Not configured'
+            },
+            'json': {
+                'name': 'JSON Files',
+                'description': 'Simple file-based storage for development and testing',
+                'features': ['No setup required', 'Portable', 'Easy debugging', 'Local storage'],
+                'status': '🟢 Active' if db_type == 'json' else '🔴 Inactive'
+            }
+        }
+        
+        # Show current database info
+        current_db = db_descriptions[db_type]
+        st.success(f"**{current_db['name']}** - {current_db['status']}")
+        st.write(current_db['description'])
+        
+        # Features
+        st.write("**Features:**")
+        for feature in current_db['features']:
+            st.write(f"• {feature}")
+        
+        # Available database types
+        st.subheader("Available Database Options")
+        
+        for db_name, info in db_descriptions.items():
+            if db_name in db_info['available_types']:
+                status_icon = "🟢" if db_name == db_type else "⚪"
+                st.write(f"{status_icon} **{info['name']}** - {info['description']}")
+            else:
+                st.write(f"🔴 **{info['name']}** - Not available")
+    
+    with col2:
+        st.subheader("Database Statistics")
+        
+        try:
+            # Get some basic stats
+            user_data = st.session_state.db_manager.get_user_data(st.session_state.username)
+            
+            total_semesters = len(user_data)
+            total_subjects = 0
+            total_records = 0
+            
+            for record in user_data:
+                total_subjects += len(record['data'])
+                total_records += len(record['data'])
+            
+            st.metric("Your Semesters", total_semesters)
+            st.metric("Your Subjects", len(set([row['Subject'] for record in user_data for _, row in record['data'].iterrows()])) if user_data else 0)
+            st.metric("Total Records", total_records)
+            
+        except Exception as e:
+            st.error(f"Error getting database statistics: {e}")
+        
+        # Database configuration info
+        st.subheader("Configuration")
+        
+        if db_type == 'postgres':
+            st.info("""
+            **PostgreSQL Configuration:**
+            - Uses environment variable DATABASE_URL
+            - Supports concurrent users
+            - ACID transaction support
+            - SQL queries and joins
+            """)
+        elif db_type == 'mongodb':
+            st.info("""
+            **MongoDB Configuration:**
+            - Uses MONGODB_URL environment variable
+            - Document-based storage
+            - Flexible data schema
+            - Aggregation pipelines
+            """)
+        else:
+            st.info("""
+            **JSON File Storage:**
+            - Local file: student_data.json
+            - Local file: users.json
+            - No external dependencies
+            - Easy backup and restore
+            """)
+    
+    # Database operations
+    st.subheader("Database Operations")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("Test Connection"):
+            try:
+                # Test database connection
+                test_result = st.session_state.db_manager.get_database_info()
+                st.success(f"✅ Database connection successful!\nType: {test_result['type'].upper()}")
+            except Exception as e:
+                st.error(f"❌ Database connection failed: {e}")
+    
+    with col2:
+        if st.button("View Data Summary"):
+            try:
+                user_data = st.session_state.db_manager.get_user_data(st.session_state.username)
+                if user_data:
+                    st.json({
+                        'total_semesters': len(user_data),
+                        'semesters': [f"{r['academic_year']} - {r['semester']}" for r in user_data],
+                        'database_type': db_type
+                    })
+                else:
+                    st.info("No data found for current user")
+            except Exception as e:
+                st.error(f"Error retrieving data summary: {e}")
+    
+    with col3:
+        if st.button("Database Info"):
+            st.json(db_info)
+    
+    # Tips and recommendations
+    st.subheader("💡 Database Recommendations")
+    
+    if db_type == 'json':
+        st.warning("""
+        **Current Setup: File-based Storage**
+        
+        You're using JSON file storage which is great for:
+        - Development and testing
+        - Single user applications
+        - Simple data backup
+        
+        Consider upgrading to PostgreSQL for:
+        - Multiple users
+        - Better performance
+        - Data integrity
+        - Production deployment
+        """)
+    elif db_type == 'postgres':
+        st.success("""
+        **Excellent Choice: PostgreSQL**
+        
+        You're using a production-ready database with:
+        - ACID compliance
+        - Concurrent user support
+        - Advanced query capabilities
+        - Excellent performance
+        """)
+    elif db_type == 'mongodb':
+        st.success("""
+        **Great Choice: MongoDB**
+        
+        You're using a flexible NoSQL database with:
+        - Document-based storage
+        - Flexible schema
+        - Horizontal scaling
+        - JSON-native operations
+        """)
 
 if __name__ == "__main__":
     main()
