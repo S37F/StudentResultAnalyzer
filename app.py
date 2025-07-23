@@ -93,14 +93,15 @@ def show_main_app():
         st.rerun()
     
     # Main navigation tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "📁 Upload Data", 
         "📊 Dashboard", 
         "📈 Analytics", 
         "🤖 ML Insights", 
         "📄 Reports", 
         "📚 History",
-        "🗄️ Database"
+        "🗄️ Database",
+        "📦 Download"
     ])
     
     with tab1:
@@ -123,6 +124,9 @@ def show_main_app():
     
     with tab7:
         show_database_tab()
+    
+    with tab8:
+        show_download_tab()
 
 def show_upload_tab():
     """Handle file upload and data parsing"""
@@ -639,6 +643,124 @@ def show_database_tab():
         - Horizontal scaling
         - JSON-native operations
         """)
+
+def show_download_tab():
+    """Display download interface for the project"""
+    st.header("📦 Download Project")
+    
+    st.markdown("""
+    Download your complete Student Result Analytics Platform with all features and documentation.
+    """)
+    
+    # Project info
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Project Size", "105 KB")
+    
+    with col2:
+        st.metric("Files Included", "18")
+    
+    with col3:
+        st.metric("Version", "1.0.0")
+    
+    # What's included
+    st.subheader("📋 What's Included")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **Core Application:**
+        - `app.py` - Main Streamlit application
+        - `database.py` - Multi-database support
+        - `auth.py` - Authentication system
+        - `utils.py` - File processing & PDF reports
+        - `analytics.py` - Performance analytics
+        - `visualizations.py` - Interactive charts
+        - `ml_models.py` - Machine learning features
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Documentation & Setup:**
+        - `README.md` - Complete documentation
+        - `setup_instructions.md` - GitHub guide
+        - `CONTRIBUTING.md` - Contribution guidelines
+        - `LICENSE` - MIT license
+        - `.gitignore` - Git configuration
+        - `dependencies.txt` - Required packages
+        - Configuration files
+        """)
+    
+    # Features
+    st.subheader("🎯 Features")
+    features = [
+        "Secure user authentication with password hashing",
+        "File upload support (CSV and PDF)",
+        "Interactive analytics dashboard with multiple chart types",
+        "Machine learning insights (clustering, predictions, PCA)",
+        "Multi-database support (PostgreSQL, MongoDB, JSON)",
+        "PDF report generation",
+        "Professional documentation and setup guides"
+    ]
+    
+    for feature in features:
+        st.write(f"✅ {feature}")
+    
+    # Download section
+    st.subheader("📥 Download")
+    
+    # Check if zip file exists
+    zip_file = "student-analytics-platform.zip"
+    if os.path.exists(zip_file):
+        file_size = os.path.getsize(zip_file)
+        
+        with open(zip_file, "rb") as file:
+            st.download_button(
+                label="📦 Download student-analytics-platform.zip",
+                data=file.read(),
+                file_name=zip_file,
+                mime="application/zip",
+                help="Download the complete project as a zip file"
+            )
+        
+        st.success(f"✅ Zip file ready! Size: {file_size / 1024:.1f} KB")
+        
+        # Quick setup instructions
+        with st.expander("🚀 Quick Setup Instructions"):
+            st.markdown("""
+            1. **Extract** the zip file to your desired location
+            2. **Install Python 3.11+** if not already installed
+            3. **Install dependencies:**
+               ```bash
+               pip install streamlit pandas numpy plotly scikit-learn pdfplumber reportlab psycopg2-binary pymongo sqlalchemy
+               ```
+            4. **Run the application:**
+               ```bash
+               streamlit run app.py
+               ```
+            5. **Access** your app at `http://localhost:8501`
+            
+            **For GitHub Upload:**
+            - See `setup_instructions.md` for detailed GitHub upload guide
+            - All sensitive files are excluded from the zip
+            - Professional documentation included
+            """)
+    else:
+        st.error("❌ Zip file not found. Please create it first.")
+        if st.button("🔧 Create Zip File"):
+            try:
+                # Import and run zip creation
+                import subprocess
+                result = subprocess.run(["python3", "create_zip.py"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    st.success("✅ Zip file created successfully!")
+                    st.rerun()
+                else:
+                    st.error(f"❌ Error creating zip: {result.stderr}")
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
 
 if __name__ == "__main__":
     main()
