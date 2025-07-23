@@ -150,6 +150,7 @@ def show_upload_tab():
             file_type = uploaded_file.name.split('.')[-1].lower()
             
             try:
+                df = None
                 if file_type == 'csv':
                     df = parse_csv_file(uploaded_file)
                 elif file_type == 'pdf':

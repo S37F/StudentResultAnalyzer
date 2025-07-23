@@ -1,0 +1,23 @@
+# Core Web Framework
+streamlit>=1.28.0
+
+# Data Processing and Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# PDF Processing
+pdfplumber>=0.10.0
+
+# Visualization
+plotly>=5.15.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# PDF Report Generation
+reportlab>=4.0.0
+
+# Additional Dependencies (automatically included with main packages)
+# matplotlib - included with plotly
+# scipy - included with scikit-learn
+# pillow - included with reportlab

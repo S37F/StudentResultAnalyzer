@@ -36,7 +36,8 @@ def parse_csv_file(uploaded_file):
         numeric_columns = ['CA_Marks', 'ESE_Marks', 'Lab_Marks', 'Total', 'SGPA']
         for col in numeric_columns:
             if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                df[col] = df[col].fillna(0)
         
         # Remove rows with empty subjects
         df = df.dropna(subset=['Subject'])

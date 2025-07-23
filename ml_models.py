@@ -36,7 +36,8 @@ class MLAnalytics:
                 numeric_cols = ['CA_Marks', 'ESE_Marks', 'Lab_Marks', 'Total', 'SGPA']
                 for col in numeric_cols:
                     if col in combined.columns:
-                        combined[col] = pd.to_numeric(combined[col], errors='coerce').fillna(0)
+                        combined[col] = pd.to_numeric(combined[col], errors='coerce')
+                        combined[col] = combined[col].fillna(0)
                 
                 return combined
             
@@ -81,7 +82,7 @@ class MLAnalytics:
             
             # Perform K-means clustering
             n_clusters = min(3, len(subject_data))
-            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
             clusters = kmeans.fit_predict(X_scaled)
             
             # Add cluster labels to data
