@@ -60,8 +60,8 @@ A comprehensive web-based analytics platform for students to upload, analyze, an
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/student-analytics-platform.git
-cd student-analytics-platform
+git clone https://github.com/s37f/StudentResultAnalyzer.git
+cd StudentResultAnalyzer
 ```
 
 ### 2. Install Dependencies
